@@ -1,0 +1,77 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+# To get you started quickly, I have provided the code to load in the files. 
+# If this works and makes sense, you can begin with Objective 2.
+
+# Set your working directory to the folder where the name files are located on YOUR computer.
+setwd("/Users/yuyangwang 1/Desktop/OIDD 245/baby_names/Names")
+
+# Because we are going to append rows to this dataframe, we need to start with an empty initial dataframe. 
+babynames = NULL
+
+# For loop to read in the file and append it to a "running total dataframe" called babynames
+# If loading in the data set is taking too long, you may want to change 1950 to something more recent.
+
+for (year in (1970:2014)) {
+    foo = read.csv(paste("yob", toString(year), ".txt", sep=''), header=FALSE)
+    babynames = rbind(babynames, cbind(foo, year))  
+}
+names(babynames) = c("name", "gender", "count", "year")
+```
+
+Find populartiy of name
+```{r}
+myname <- babynames[which(babynames$name=="Tom"),]
+myname <- myname[which(myname$gender=="M"),]
+plot(myname$year, myname$count)
+```
+
+Find unique girl names every year
+
+```{r}
+girl_names <- babynames[which(babynames$gender=="F"),]
+tb <- as.data.frame(table(girl_names$year))
+plot(tb)
+```
+
+Function that finds most popular names in a year:
+```{r}
+toptennames <- function(gender, year) {
+  ttn = babynames[which(babynames$gender == gender & babynames$year == year), ]
+  topnames = ttn[order(ttn$count, decreasing = TRUE), ]
+  return(topnames[(1:10), ])
+}
+
+print(toptennames("M", "2010"))
+```
+
+Generate a list of the ten names that, in 2014, were relatively popular for both baby boys and baby girls. To do this, use the following condition. For names for which there are at least 1000 people in the year with that name (could be boys or girls), compute the difference between boys and girls with the name. Then, we will call those names with the smallest magnitude difference between the two the most "gender neutral" names. To complete this objective:
+
+```{r}
+male = babynames[which(babynames$gender=="M" & babynames$year == 2014), ]
+female = babynames[which(babynames$gender=="F" & babynames$year == 2014), ]
+merged = merge(male, female, by.x = "name", by.y = "name")
+mergeTop = merged[which(merged$count.x + merged$count.y > 1000), ]
+mergeTop$diff = abs(mergeTop$count.x - mergeTop$count.y)
+m = mergeTop[order(mergeTop$diff), ]
+head(m,10)
+```
+
